@@ -24,7 +24,7 @@ class Store {
 		this.set({ qrindex: 0, qrcode: [''], qrdata: [''], qrsrc: '', input: '', scanner: false, loading: false, ...o })
 	}
 	scan = () => {
-		this.init({ scanner: true, loading: true })
+		this.init({ scanner: true })
 		const promise = this.qreader.decodeFromConstraints({ video: { facingMode: this.scanmode, width: 600, height: 600 } }, document.querySelector('video')!, (i: any) => i && (this.setInput(i.getText()), this.toggleScan(0)))
 		return () => { promise.then((s) => s.stop()) }
 	}
