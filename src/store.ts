@@ -10,8 +10,8 @@ class Store {
 	qrdata = ['']
 	qrsrc = ''
 	input = ''
-	video: any
 	shareAnchor: any
+	loading = false
 	scanner = false
 	scanmode = 'environment'
 	constructor() {
@@ -21,20 +21,15 @@ class Store {
 		runInAction(() => Object.keys(o).forEach((k) => this[k] = o[k]))
 	}
 	init = (o = {}) => {
-		this.set({ qrindex: 0, qrcode: [''], qrdata: [''], qrsrc: '', input: '', ...o })
+		this.set({ qrindex: 0, qrcode: [''], qrdata: [''], qrsrc: '', input: '', scanner: false, loading: false, ...o })
 	}
-	scan = (video: HTMLVideoElement, facingMode: string) => {
-		navigator.mediaDevices.getUserMedia({ video: { facingMode, width: 600, height: 600 } })
-			.then((m) => this.qreader.decodeFromStream(m, video, (i: any) => i && (this.setInput(i.getText()), this.toggleScan())))
-			.catch(() => (this.set({ input: 'Scanning device could not be found!' }), this.toggleScan()))
-	}
-	scaninit = ({ video }: { video: HTMLVideoElement }) => {
-		this.init({ scanner: true, video })
-		this.scan(video, this.scanmode)
-		return () => this.video.srcObject?.getTracks()?.[0]?.stop()
+	scan = () => {
+		this.init({ scanner: true, loading: true })
+		const promise = this.qreader.decodeFromConstraints({ video: { facingMode: this.scanmode, width: 600, height: 600 } }, document.querySelector('video')!, (i: any) => i && (this.setInput(i.getText()), this.toggleScan(0)))
+		return () => { promise.then((s) => s.stop()) }
 	}
 	setInput = (i: string) => {
-		this.set({ input: i, qrindex: 0 })
+		this.init({ input: i })
 		if (i !== '') {
 			const qrdata = i.match(/[^]{2048}|[^]+/g)!
 			const qrcode = qrdata.map((v) => toDataURL(v, { margin: 1, scale: 16 }))
@@ -44,12 +39,14 @@ class Store {
 	setIndex = (i: number) => {
 		this.set({ qrindex: i, qrsrc: this.qrcode[i], input: this.qrdata[i] })
 	}
-	toggleScan = () => {
-		window.location.hash = ((this.scanner = !this.scanner)) ? '/scan' : '/'
+	toggleScan = (off?: any) => {
+		if (off === 0 || this.scanner) (this.scanner = false, window.location.hash = '/')
+		else (this.scanner = true, window.location.hash = '/scan')
 	}
 	switchScan = () => {
-		this.video.srcObject.getTracks()[0].stop()
-		this.scan(this.video, this.scanmode = this.scanmode === 'environment' ? 'user' : 'environment')
+		Promise.resolve(window.location.hash = '/')
+			.then(() => this.scanmode = this.scanmode === 'environment' ? 'user' : 'environment')
+			.then(() => window.location.hash = '/scan')
 	}
 	toggleShare = (anchor = null) => {
 		this.set({ shareAnchor: this.shareAnchor ? null : anchor })

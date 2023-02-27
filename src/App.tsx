@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react";
 import { HashRouter as Router, Navigate, useRoutes, Outlet } from 'react-router-dom';
 import { Dialog, DialogContent, DialogTitle, Input, IconButton, Box, ClickAwayListener, MenuList, MenuItem, Popover } from "@mui/material";
-import { QrCodeScanner, Share, Cameraswitch, ContentCopy, Download, Upload, KeyboardArrowLeft, KeyboardArrowRight, Camera, ContentPaste, HighlightOff } from '@mui/icons-material';
+import { QrCodeScanner, Share, Cameraswitch, ContentCopy, Download, Upload, KeyboardArrowLeft, KeyboardArrowRight, Camera, ContentPaste, HighlightOff, HourglassTop } from '@mui/icons-material';
 import store, { observer } from './store'
 
 const path = window.location.pathname;
@@ -9,9 +9,8 @@ const path = window.location.pathname;
 navigator.serviceWorker.addEventListener("message", ({ data }) => store.upload(data.files));
 
 const Scan = () => {
-  const ref = useRef<HTMLVideoElement>(null)
-  useEffect(() => store.scaninit({ video: ref.current as HTMLVideoElement }), [])
-  return <Box><video ref={ref} style={{ width: '100%' }} /></Box>
+  useEffect(store.scan, [])
+  return <Box><video style={{ width: '100%' }} /></Box>
 }
 
 const QR = observer(() => {
@@ -34,7 +33,7 @@ const ShareList = observer(() => <>
 </>)
 
 const App = observer(() => {
-  const { input, scanner } = store
+  const { input, scanner, loading } = store
   return useRoutes([{
     path: '/', element:
       <Dialog open fullWidth>
@@ -49,7 +48,7 @@ const App = observer(() => {
         <DialogContent>
           <Input endAdornment={<IconButton sx={{ p: 0 }} onClick={input ? store.init : store.paste} children={input ? <HighlightOff /> : <ContentPaste />} />}
             fullWidth multiline maxRows={4} sx={{ mb: 2 }} value={input} placeholder={'context'} onChange={(e) => store.setInput(e.target.value)} />
-          <Box sx={{ display: 'flex', flexDirection: "column", alignItems: 'center', justifyContent: 'center', width: '100%', aspectRatio: '1/1' }} children={<Outlet />} />
+          <Box sx={{ display: 'flex', flexDirection: "column", alignItems: 'center', justifyContent: 'center', width: '100%', aspectRatio: '1/1' }} children={loading ? <HourglassTop color="primary" /> : <Outlet />} />
         </DialogContent>
       </Dialog>,
     children: [
