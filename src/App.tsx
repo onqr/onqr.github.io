@@ -42,7 +42,7 @@ const App = observer(() => {
         <IconButton onClick={store.toggleScan} children={<Camera color={scanner ? 'secondary' : 'primary'} />} />
         {scanner && <IconButton onClick={store.switchScan} children={<Cameraswitch color='primary' />} />}
         <IconButton onClick={store.copy} children={<ContentCopy color='primary' />} />
-        <IconButton component="label" children={<><Upload color='primary' /><input type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={(e) => store.upload(e.target.files ?? [])} /></>} />
+        <IconButton component="label" children={<><Upload color='primary' /><input type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={({ target }) => (store.upload(target.files ?? []), target.value = '')} /></>} />
         <IconButton onClick={store.download} children={<Download color='primary' />} />
         <ShareList />
       </DialogTitle>
